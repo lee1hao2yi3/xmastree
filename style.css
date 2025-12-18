@@ -1,59 +1,36 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Great+Vibes&display=swap');
 
-body, html {
-  margin: 0; 
-  overflow: hidden;
-  background: #000;
-  font-family: 'Poppins', sans-serif;
-}
+body, html { margin: 0; overflow: hidden; background: #000; font-family: 'Poppins', sans-serif; }
+canvas { position: fixed; top: 0; left: 0; }
 
-canvas {
-  position: fixed;
-  top: 0; left: 0;
-}
-
-/* The "Click to Start" Overlay */
+/* Start Overlay */
 #overlay {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(0,0,0,0.9);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
+  display: flex; justify-content: center; align-items: center; z-index: 100;
   transition: opacity 1s;
 }
-
-.content {
-  text-align: center;
-  color: white;
-}
-
+.content { text-align: center; color: white; }
 h1 { font-size: 4rem; margin: 0; animation: bounce 2s infinite; }
-p { margin-bottom: 20px; font-size: 1.2rem; opacity: 0.8; }
-
 button {
-  padding: 15px 40px;
-  font-size: 1.2rem;
-  background: #ff0055;
-  color: white;
-  border: none;
-  border-radius: 50px;
-  cursor: pointer;
-  box-shadow: 0 0 20px #ff0055;
-  font-weight: bold;
+  padding: 15px 40px; font-size: 1.2rem; background: #ff0055; color: white;
+  border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 0 20px #ff0055;
+  font-weight: bold; margin-top: 20px;
 }
+@keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
-button:hover { background: #ff3377; }
-
-@keyframes bounce {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-}
-
-/* Hide overlay when playing */
-.hidden {
-  opacity: 0;
+/* NEW: Final Text Styling */
+#finalText {
+  position: absolute;
+  bottom: 10%;
+  width: 100%;
+  text-align: center;
+  font-family: 'Great Vibes', cursive; /* Elegant Script Font */
+  color: #ffd700; /* Gold */
+  font-size: 3.5rem;
+  text-shadow: 0 0 10px #ffaa00;
+  opacity: 0; /* Hidden by default */
+  transition: opacity 3s ease-in;
   pointer-events: none;
+  z-index: 50;
 }
