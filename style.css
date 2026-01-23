@@ -1,37 +1,46 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Ma+Shan+Zheng&display=swap');
 
-body, html { margin: 0; overflow: hidden; background: #2a0000; font-family: 'Poppins', sans-serif; }
+body, html { margin: 0; overflow: hidden; background: #330000; font-family: 'Poppins', sans-serif; }
 canvas { position: fixed; top: 0; left: 0; }
 
 /* Overlay */
 #overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(40, 0, 0, 0.95); /* Dark Red background */
+  background: rgba(51, 0, 0, 0.95);
   display: flex; justify-content: center; align-items: center; z-index: 100;
   transition: opacity 1s;
 }
-.content { text-align: center; color: #ffd700; }
+.content { text-align: center; color: #ffd700; width: 90%; } /* Width 90% prevents overflow */
 h1 { font-size: 5rem; margin: 0; animation: bounce 2s infinite; }
 p { color: #ffaaaa; font-size: 1.2rem; margin-bottom: 20px;}
 
 button {
   padding: 15px 50px; font-size: 1.5rem; 
-  background: #d90000; color: #ffd700; /* Red btn, Gold text */
+  background: #d90000; color: #ffd700;
   border: 2px solid #ffd700; border-radius: 50px; cursor: pointer; 
   box-shadow: 0 0 30px #d90000;
   font-weight: bold; font-family: 'Ma Shan Zheng', cursive;
+  -webkit-tap-highlight-color: transparent; /* Removes blue tap box on mobile */
 }
 
 @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
-/* Final Text (Calligraphy Style) */
+/* Final Text */
 #finalText {
   position: absolute; bottom: 15%; width: 100%;
   text-align: center;
-  font-family: 'Ma Shan Zheng', cursive; /* Chinese Brush Font */
+  font-family: 'Ma Shan Zheng', cursive;
   color: #ffd700;
-  font-size: 4rem;
+  font-size: 3.5rem;
   text-shadow: 0 0 20px #ff0000;
   opacity: 0; transition: opacity 3s ease-in;
   pointer-events: none; z-index: 50;
+  padding: 0 10px; box-sizing: border-box; /* Prevent side scroll */
+}
+
+/* --- MOBILE ADJUSTMENTS --- */
+@media (max-width: 768px) {
+    h1 { font-size: 3.5rem; }
+    button { padding: 12px 35px; font-size: 1.2rem; }
+    #finalText { font-size: 2rem; bottom: 20%; }
 }
