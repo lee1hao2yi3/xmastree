@@ -1,36 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Great+Vibes&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Ma+Shan+Zheng&display=swap');
 
-body, html { margin: 0; overflow: hidden; background: #000; font-family: 'Poppins', sans-serif; }
+body, html { margin: 0; overflow: hidden; background: #2a0000; font-family: 'Poppins', sans-serif; }
 canvas { position: fixed; top: 0; left: 0; }
 
-/* Start Overlay */
+/* Overlay */
 #overlay {
   position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(0,0,0,0.9);
+  background: rgba(40, 0, 0, 0.95); /* Dark Red background */
   display: flex; justify-content: center; align-items: center; z-index: 100;
   transition: opacity 1s;
 }
-.content { text-align: center; color: white; }
-h1 { font-size: 4rem; margin: 0; animation: bounce 2s infinite; }
+.content { text-align: center; color: #ffd700; }
+h1 { font-size: 5rem; margin: 0; animation: bounce 2s infinite; }
+p { color: #ffaaaa; font-size: 1.2rem; margin-bottom: 20px;}
+
 button {
-  padding: 15px 40px; font-size: 1.2rem; background: #ff0055; color: white;
-  border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 0 20px #ff0055;
-  font-weight: bold; margin-top: 20px;
+  padding: 15px 50px; font-size: 1.5rem; 
+  background: #d90000; color: #ffd700; /* Red btn, Gold text */
+  border: 2px solid #ffd700; border-radius: 50px; cursor: pointer; 
+  box-shadow: 0 0 30px #d90000;
+  font-weight: bold; font-family: 'Ma Shan Zheng', cursive;
 }
+
 @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
 
-/* NEW: Final Text Styling */
+/* Final Text (Calligraphy Style) */
 #finalText {
-  position: absolute;
-  bottom: 10%;
-  width: 100%;
+  position: absolute; bottom: 15%; width: 100%;
   text-align: center;
-  font-family: 'Great Vibes', cursive; /* Elegant Script Font */
-  color: #ffd700; /* Gold */
-  font-size: 3.5rem;
-  text-shadow: 0 0 10px #ffaa00;
-  opacity: 0; /* Hidden by default */
-  transition: opacity 3s ease-in;
-  pointer-events: none;
-  z-index: 50;
+  font-family: 'Ma Shan Zheng', cursive; /* Chinese Brush Font */
+  color: #ffd700;
+  font-size: 4rem;
+  text-shadow: 0 0 20px #ff0000;
+  opacity: 0; transition: opacity 3s ease-in;
+  pointer-events: none; z-index: 50;
 }
