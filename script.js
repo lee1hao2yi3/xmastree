@@ -1,34 +1,35 @@
 import * as THREE from 'three';
 
 // --- CONFIGURATION ---
-const PARTICLE_COUNT = 5500; 
-const PARTICLE_SIZE = 0.15;
+const PARTICLE_COUNT = 6500; // Increased for Lion detail
+const PARTICLE_SIZE = 0.12;
 const TRANSITION_DURATION = 2.0; 
 
 // --- SETUP ---
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x2a0000); // Dark Red Background
+scene.background = new THREE.Color(0x1a0000); // Very dark red night
+scene.fog = new THREE.FogExp2(0x1a0000, 0.02);
+
 const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 0, 35);
+camera.position.set(0, 0, 40);
+
 const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#bg'), antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
 
-// --- PARTICLES ---
+// --- MAIN PARTICLES ---
 const geometry = new THREE.BufferGeometry();
-const initialPositions = new Float32Array(PARTICLE_COUNT * 3);
-const colors = new Float32Array(PARTICLE_COUNT * 3);
-const targetPositions = new Float32Array(PARTICLE_COUNT * 3);
 const currentPositions = new Float32Array(PARTICLE_COUNT * 3);
+const targetPositions = new Float32Array(PARTICLE_COUNT * 3);
+const colors = new Float32Array(PARTICLE_COUNT * 3);
 
-// Init random positions (Gold dust)
+// Initialize scattered positions
 for (let i = 0; i < PARTICLE_COUNT; i++) {
-    const x = (Math.random() - 0.5) * 60;
-    const y = (Math.random() - 0.5) * 60;
-    const z = (Math.random() - 0.5) * 60;
-    initialPositions[i * 3] = x; initialPositions[i * 3 + 1] = y; initialPositions[i * 3 + 2] = z;
+    const x = (Math.random() - 0.5) * 80;
+    const y = (Math.random() - 0.5) * 80;
+    const z = (Math.random() - 0.5) * 80;
     currentPositions[i * 3] = x; currentPositions[i * 3 + 1] = y; currentPositions[i * 3 + 2] = z;
-    colors[i * 3] = 1; colors[i * 3 + 1] = 0.8; colors[i * 3 + 2] = 0; // Gold
+    colors[i * 3] = 1; colors[i * 3 + 1] = 0.8; colors[i * 3 + 2] = 0; // Start Gold
 }
 geometry.setAttribute('position', new THREE.BufferAttribute(currentPositions, 3));
 geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
@@ -39,17 +40,45 @@ const material = new THREE.PointsMaterial({
 const particles = new THREE.Points(geometry, material);
 scene.add(particles);
 
-// --- FIREWORKS (Instead of Snow) ---
+// --- ANGPAO RAIN (Falling Red Squares) ---
+const angpaoGeo = new THREE.BufferGeometry();
+const angpaoCount = 200; // Number of falling angpaos
+const angpaoPos = new Float32Array(angpaoCount * 3);
+for(let i=0; i<angpaoCount*3; i+=3) {
+    angpaoPos[i] = (Math.random()-0.5) * 60; // x
+    angpaoPos[i+1] = Math.random() * 40 + 10; // y (Start high)
+    angpaoPos[i+2] = (Math.random()-0.5) * 30; // z
+}
+angpaoGeo.setAttribute('position', new THREE.BufferAttribute(angpaoPos, 3));
+
+// Use a large square point for Angpao
+const angpaoMat = new THREE.PointsMaterial({ 
+    size: 1.5, // Look like rectangles
+    color: 0xff0000, 
+    opacity: 0, // Start invisible
+    transparent: true 
+});
+const angpaoMesh = new THREE.Points(angpaoGeo, angpaoMat);
+scene.add(angpaoMesh);
+
+// --- FIREWORKS ---
 const fireworkGeo = new THREE.BufferGeometry();
-const fireworkCount = 1000;
+const fireworkCount = 800;
 const fireworkPos = new Float32Array(fireworkCount * 3);
-for(let i=0; i<fireworkCount*3; i++) fireworkPos[i] = (Math.random()-0.5) * 100; // Far away
+const fireworkVel = []; // Store velocities
+for(let i=0; i<fireworkCount; i++) {
+    fireworkPos[i*3] = 0; fireworkPos[i*3+1] = -50; fireworkPos[i*3+2] = 0; // Hide initially
+    fireworkVel.push({x:0, y:0, z:0, active: false});
+}
 fireworkGeo.setAttribute('position', new THREE.BufferAttribute(fireworkPos, 3));
-const fireworkMat = new THREE.PointsMaterial({ size: 0.3, color: 0xffd700, transparent: true, opacity: 0 });
+const fireworkMat = new THREE.PointsMaterial({ size: 0.4, color: 0xffd700, transparent: true, opacity: 1 });
 const fireworkMesh = new THREE.Points(fireworkGeo, fireworkMat);
 scene.add(fireworkMesh);
 
-// --- GENERATORS ---
+
+// --- SHAPE GENERATORS ---
+
+// 1. Text Scanner
 function getTextCoordinates(text, fontSize = 100) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -71,66 +100,75 @@ function getTextCoordinates(text, fontSize = 100) {
     return coords;
 }
 
-// === NEW: LANTERN SHAPE ===
-function getLanternCoordinates() {
+// 2. LION HEAD GENERATOR (Geometric Composition)
+function getLionCoordinates() {
     const coords = [];
+    const count = PARTICLE_COUNT;
     
-    // 1. Lantern Body (Sphere-ish) - 70%
-    const bodyCount = Math.floor(PARTICLE_COUNT * 0.7);
-    for (let i = 0; i < bodyCount; i++) {
-        const u = Math.random();
-        const v = Math.random();
-        const theta = 2 * Math.PI * u;
-        const phi = Math.acos(2 * v - 1);
+    for (let i = 0; i < count; i++) {
+        // Random point generator for volume filling
+        const u = Math.random(); const v = Math.random();
+        const theta = 2 * Math.PI * u; const phi = Math.acos(2 * v - 1);
+        const r = Math.cbrt(Math.random()) * 6; // Base radius 6
         
-        let radius = 6;
-        // Flatten the sphere slightly at top/bottom to make it lantern shaped
-        let y = radius * Math.cos(phi) * 1.2; 
-        let x = radius * Math.sin(phi) * Math.cos(theta);
-        let z = radius * Math.sin(phi) * Math.sin(theta);
+        const x = r * Math.sin(phi) * Math.cos(theta);
+        const y = r * Math.sin(phi) * Math.sin(theta);
+        const z = r * Math.cos(phi);
 
-        // Color: RED (1, 0, 0)
-        coords.push({ x, y, z, r: 1, g: 0.1, b: 0.1 });
+        // A. RED FACE (Main Sphere)
+        if (z < 2) { 
+            coords.push({x, y, z: z-2, r: 1, g: 0.1, b: 0.1}); // Red
+            continue;
+        }
+
+        // B. EYES (White Spheres)
+        if (y > 1 && Math.abs(x) > 1.5 && Math.abs(x) < 4.5 && z > 2) {
+             coords.push({x, y: y+1, z: z+2, r: 1, g: 1, b: 1}); // White
+             continue;
+        }
+
+        // C. PUPILS (Black dots in eyes)
+        if (y > 2 && Math.abs(x) > 2.5 && Math.abs(x) < 3.5 && z > 4) {
+             coords.push({x, y: y+1, z: z+2.5, r: 0, g: 0, b: 0}); // Black
+             continue;
+        }
+
+        // D. GOLDEN HORN (Top Cone)
+        if (y > 4 && Math.abs(x) < 1.5) {
+             coords.push({x: x*0.5, y: y+3, z: z, r: 1, g: 0.8, b: 0}); // Gold
+             continue;
+        }
+
+        // E. BEARD (White falling particles)
+        if (y < -3) {
+             coords.push({x: x*1.2, y: y-Math.random()*4, z: z, r: 0.9, g: 0.9, b: 0.9}); // White/Grey
+             continue;
+        }
+
+        // Default: Red Face border
+        coords.push({x, y, z, r: 1, g: 0.1, b: 0.1});
     }
-
-    // 2. Top & Bottom Rims (Gold Rings) - 10%
-    const rimCount = Math.floor(PARTICLE_COUNT * 0.1);
-    for (let i = 0; i < rimCount; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const r = 3.5; // Width of rim
-        const isTop = Math.random() > 0.5;
-        const y = isTop ? 6 : -6;
-        
-        coords.push({ 
-            x: Math.cos(angle)*r, y: y, z: Math.sin(angle)*r, 
-            r: 1, g: 0.8, b: 0 
-        }); // GOLD
-    }
-
-    // 3. The Tassel (Falling Lines at bottom) - 20%
-    const tasselCount = PARTICLE_COUNT - coords.length;
-    for (let i = 0; i < tasselCount; i++) {
-        const y = -6 - (Math.random() * 8); // Hanging down
-        const width = 1.5 * (1 - (Math.abs(y)-6)/8); // Taper slightly
-        const x = (Math.random()-0.5) * width;
-        const z = (Math.random()-0.5) * width;
-
-        coords.push({ x, y, z, r: 1, g: 0.8, b: 0 }); // GOLD
-    }
-
     return coords;
 }
 
 // --- ANIMATION ENGINE ---
-let isAnimating = false, transitionStart = 0, isLanternMode = false;
+let isAnimating = false, transitionStart = 0, isLionMode = false;
 
 function morphTo(shapeCoords) {
+    // Shuffle
     const indices = Array.from({length: PARTICLE_COUNT}, (_, i) => i).sort(() => Math.random() - 0.5);
     for (let i = 0; i < PARTICLE_COUNT; i++) {
         const pIndex = indices[i];
         const target = shapeCoords[i % shapeCoords.length];
-        targetPositions[pIndex * 3] = target.x; targetPositions[pIndex * 3 + 1] = target.y; targetPositions[pIndex * 3 + 2] = target.z;
-        const r = target.r !== undefined ? target.r : 1; const g = target.g !== undefined ? target.g : 0.8; const b = target.b !== undefined ? target.b : 0;
+        
+        targetPositions[pIndex * 3] = target.x; 
+        targetPositions[pIndex * 3 + 1] = target.y; 
+        targetPositions[pIndex * 3 + 2] = target.z;
+        
+        // Colors
+        const r = target.r !== undefined ? target.r : 1; 
+        const g = target.g !== undefined ? target.g : 0.8; 
+        const b = target.b !== undefined ? target.b : 0;
         colors[pIndex * 3] = r; colors[pIndex * 3 + 1] = g; colors[pIndex * 3 + 2] = b;
     }
     geometry.attributes.color.needsUpdate = true;
@@ -152,36 +190,27 @@ async function runShow() {
     morphTo(getTextCoordinates("Gong Xi", 180)); await wait(1500);
     morphTo(getTextCoordinates("Fa Cai", 180)); await wait(1500);
     
-    // 3. The Lantern
-    morphTo(getLanternCoordinates());
-    isLanternMode = true;
+    // 3. Lion Dance Finale
+    morphTo(getLionCoordinates());
+    isLionMode = true;
 
-    // 4. Show Name
+    // 4. Trigger Angpao Rain & Fireworks
+    angpaoMat.opacity = 1; 
+    
+    // 5. Final Text
     const finalText = document.getElementById('finalText');
     finalText.innerText = "Happy CNY, " + friendName;
     setTimeout(() => { finalText.style.opacity = '1'; }, 1000);
-    
-    // 5. Start Fireworks
-    startFireworks();
 }
 
 function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-// --- FIREWORKS LOGIC ---
-function startFireworks() {
-    let opacity = 0;
-    const fadeIn = setInterval(() => {
-        opacity += 0.05; fireworkMat.opacity = opacity;
-        if(opacity >= 1) clearInterval(fadeIn);
-    }, 100);
-}
 
 // --- LOOP ---
 function animate() {
     requestAnimationFrame(animate);
     const time = performance.now();
-    
-    // Morphing
+
+    // A. Morphing
     if (isAnimating) {
         const progress = Math.min((time - transitionStart) / (TRANSITION_DURATION * 1000), 1);
         const pos = geometry.attributes.position.array;
@@ -195,25 +224,44 @@ function animate() {
         if (progress >= 1) isAnimating = false;
     }
 
-    // Idle Animation
-    if (isLanternMode) {
-        particles.rotation.y = Math.sin(time * 0.001) * 0.2; // Gentle swing
+    // B. Lion Mode Animation
+    if (isLionMode) {
+        // 1. Bobbing Head (Lion Dance movement)
+        particles.rotation.y = Math.sin(time * 0.002) * 0.2; 
+        particles.rotation.z = Math.cos(time * 0.003) * 0.05; 
         
-        // Fireworks Explode/Reset
-        const fp = fireworkGeo.attributes.position.array;
+        // 2. Angpao Rain
+        const apos = angpaoGeo.attributes.position.array;
+        for(let i=1; i<angpaoCount*3; i+=3) {
+            apos[i] -= 0.15; // Fall speed
+            if(apos[i] < -25) { // Reset to top
+                apos[i] = 30;
+                apos[i-1] = (Math.random()-0.5) * 60; // Random X
+            }
+        }
+        angpaoGeo.attributes.position.needsUpdate = true;
+
+        // 3. Fireworks
+        const fpos = fireworkGeo.attributes.position.array;
         for(let i=0; i<fireworkCount; i++) {
-            const ix = i*3, iy = i*3+1, iz = i*3+2;
-            fp[iy] += 0.1; // Rise up
-            if(fp[iy] > 40 || Math.random() < 0.001) { // Reset
-                fp[ix] = (Math.random()-0.5) * 80;
-                fp[iy] = -30;
-                fp[iz] = (Math.random()-0.5) * 40 - 20; 
+            const v = fireworkVel[i];
+            // If active, move
+            if(v.active) {
+                fpos[i*3] += v.x; fpos[i*3+1] += v.y; fpos[i*3+2] += v.z;
+                v.y -= 0.005; // Gravity
+                v.active = Math.random() > 0.02; // Chance to die
+            } else if(Math.random() < 0.01) { // Chance to respawn
+                fpos[i*3] = (Math.random()-0.5)*40; 
+                fpos[i*3+1] = (Math.random()-0.5)*40; 
+                fpos[i*3+2] = -10;
+                // Explode out
+                v.x = (Math.random()-0.5)*0.5; v.y = (Math.random()-0.5)*0.5; v.z = (Math.random()-0.5)*0.5;
+                v.active = true;
             }
         }
         fireworkGeo.attributes.position.needsUpdate = true;
-    } else {
-        particles.rotation.y = Math.sin(time * 0.001) * 0.1;
-    }
+    } 
+
     renderer.render(scene, camera);
 }
 animate();
